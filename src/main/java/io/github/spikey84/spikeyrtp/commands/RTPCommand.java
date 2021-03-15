@@ -9,7 +9,11 @@ import org.bukkit.entity.Player;
 public class RTPCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        Main.rtp((Player) sender);
+        if(sender.hasPermission("spikeyrtp.rtp")) {
+            Main.rtp((Player) sender);
+        } else {
+            sender.sendMessage(Main.prefix + "Sorry, you do not have access to this command.");
+        }
         return true;
     }
 }

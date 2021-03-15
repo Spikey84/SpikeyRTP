@@ -2,48 +2,66 @@ package io.github.spikey84.spikeyrtp;
 
 import io.github.spikey84.spikeyrtp.commands.RTPCommand;
 import io.github.spikey84.spikeyrtp.commands.RTPReset;
+import io.github.spikey84.spikeyrtp.sql.Database;
+import io.github.spikey84.spikeyrtp.sql.SQLite;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main extends JavaPlugin {
+    static Plugin plugin;
+    public static Database db;
+
     static int maxLoc;
+    static int limit; //limit of teleports
+
     static FileConfiguration config;
-    public static List<String> users;
+    //public static List<String> users;
     public static String prefix = ChatColor.WHITE + "["+ ChatColor.DARK_AQUA + "SpikeyRTP" + ChatColor.WHITE + "] ";
 
     @Override
     public void onEnable() {
+        plugin = this;
+
+        db = new SQLite(this);
+        db.load();
+
+
+
+
         getCommand("rtp").setExecutor(new RTPCommand());
         getCommand("rtpreset").setExecutor(new RTPReset());
 
         this.saveDefaultConfig();
         config = this.getConfig();
         Bukkit.getLogger().info(config.getStringList("users")+ "");
-        users = config.getStringList("users");
-        maxLoc = config.getInt("maxdistance");
+        maxLoc = config.getInt("maxDistance");
+        limit = config.getInt("maxTeleports");
 
 
     }
 
     @Override
     public void onDisable() {
-        config.set("users", users);
-        config.set("maxdistance",maxLoc);
-        saveConfig();
+        //config.set("users", users);
+        //config.set("maxdistance",maxLoc);
+        //saveConfig();
     }
 
 
+
     public static void rtp(Player player) {
-        if(users.contains(player.getName()) && !player.hasPermission("spikeyrtp.bypasslimit")) {
-            player.sendMessage(prefix + ChatColor.WHITE + "You have already used your one allowed RTP.");
+        int numTeleports = db.getTokens(player.getName());
+        if(numTeleports >= limit && !player.hasPermission("spikeyrtp.bypasslimit")) {
+            player.sendMessage(prefix + ChatColor.WHITE + "You have already used your " + limit + " allowed RTP(s).");
             return;
         }
         int x;
@@ -64,7 +82,7 @@ public class Main extends JavaPlugin {
             if (loc.getBlock().getType() == Material.GRASS_BLOCK && loc.getWorld().getBlockAt(loc.getBlockX(),loc.getBlockY()+1,loc.getBlockZ()).getType() == Material.AIR && loc.getWorld().getBlockAt(loc.getBlockX(),loc.getBlockY()+2,loc.getBlockZ()).getType() == Material.AIR) validLoc = true;
             attempts++;
             if(attempts > 40) {
-                player.sendMessage(prefix + "" + ChatColor.WHITE + "Unable to find a suitable location. Please re-run command or re-enter portal. Sorry.");
+                player.sendMessage(prefix + "" + ChatColor.WHITE + "Unable to find a suitable location. Please re-run the command or re-enter portal. Sorry.");
                 return;
             }
         }
@@ -73,12 +91,14 @@ public class Main extends JavaPlugin {
         loc.setX(loc.getX() + 0.5);
         loc.setZ(loc.getZ() + 0.5);
         player.teleport(loc);
+        player.sendMessage(prefix + "" + ChatColor.WHITE + "Teleported to " + ChatColor.DARK_AQUA + loc.getBlockX() + ChatColor.WHITE + ", " + ChatColor.DARK_AQUA + loc.getBlockY() + ChatColor.WHITE + ", " + ChatColor.DARK_AQUA + loc.getBlockZ() + ChatColor.WHITE + ".");
         if(!player.hasPermission("spikeyrtp.bypasslimit")) {
-            users.add(player.getName());
+            //users.add(player.getName());
+            db.setTokens(player, numTeleports+1);
         }
     }
 
     private static int genLoc() {
-        return (int) Math.round(((Math.random()*10000)%maxLoc)-(maxLoc/2));
+        return (int) Math.round(((Math.random()*10000)%(maxLoc*2))-(maxLoc));
     }
 }

@@ -6,7 +6,6 @@ commands:
   rtp:
     usage: /rtp
     description: Random teleport.
-    permission: spikeyrtp.rtp
   rtpreset:
     usage: /rtpreset
     description: Resets a player's rtp data.
@@ -15,3 +14,6 @@ permissions:
     spikeyrtp.bypasslimit:
       default: false
       description: Allows a player to bypass the limit of rtp. Will not store rtps by this player.
+    spikeyrtp.rtp:
+      default: false
+      description: Allows a player to run /rtp

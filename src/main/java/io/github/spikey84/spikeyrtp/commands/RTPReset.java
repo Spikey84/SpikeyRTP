@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class RTPReset implements CommandExecutor {
     @Override
@@ -15,8 +16,8 @@ public class RTPReset implements CommandExecutor {
         }
         sender.sendMessage(Main.prefix + "" + ChatColor.WHITE + "Data reset started:");
         for(String name : args) {
-            if(Main.users.contains(name)) {
-                Main.users.remove(name);
+            if(Main.db.getTokens(name)>0) {
+                Main.db.setTokens((Player) sender,0);
                 sender.sendMessage(ChatColor.GRAY + "" + name + "'s rtp data has been reset.");
             } else {
                 sender.sendMessage(ChatColor.GRAY + "" + name + " has no rtp data to delete.");

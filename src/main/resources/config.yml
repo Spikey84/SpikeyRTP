@@ -1,7 +1,5 @@
+#represents the maximum distance in one direction a user may be teleported; must be an whole number (numbers under 100 are not recommended)
+maxDistance: 1000
 
-#how far in one direction can a player be teleported; must be an whole number
-maxdistance: 1000
-
-# stores data on who has already used their rtp
-users:
-  - test
+#represents the maximum number of teleports a player may use; must be a whole number
+maxTeleports: 1
