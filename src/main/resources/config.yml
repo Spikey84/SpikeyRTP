@@ -20,12 +20,12 @@ blockOneY: 0
 blockOneZ: 0
 
 #cordnates of the second corner of the portal
-blockTwoX: 0
-blockTwoY: 0
-blockTwoZ: 0
+blockTwoX: 2
+blockTwoY: 2
+blockTwoZ: 2
 
 #allows portals to teleport the player to coordinates if they are unable to rtp
-returnlocation: true
+returnlocation: false
 returnX: 0
 returnY: 0
 returnZ: 0
