@@ -1,0 +1,7 @@
+
+#how far in one direction can a player be teleported; must be an whole number
+maxdistance: 1000
+
+# stores data on who has already used their rtp
+users:
+  - test

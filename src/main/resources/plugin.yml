@@ -1,0 +1,17 @@
+name: SpikeyRTP
+version: 1.0
+main: io.github.spikey84.spikeyrtp.Main
+api-version: 1.13
+commands:
+  rtp:
+    usage: /rtp
+    description: Random teleport.
+    permission: spikeyrtp.rtp
+  rtpreset:
+    usage: /rtpreset
+    description: Resets a player's rtp data.
+    permission: spikeyrtp.reset
+permissions:
+    spikeyrtp.bypasslimit:
+      default: false
+      description: Allows a player to bypass the limit of rtp. Will not store rtps by this player.
