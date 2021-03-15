@@ -11,7 +11,6 @@ import java.util.logging.Level;
 import io.github.spikey84.spikeyrtp.sql.Database;
 import io.github.spikey84.spikeyrtp.Main;
 
-
 public class SQLite extends Database{
     String dbname;
     public SQLite(Main instance){

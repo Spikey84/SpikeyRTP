@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 public class RTPReset implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        //command output messages speak for themselves
         if(args.length == 0) {
             sender.sendMessage(Main.prefix + "" + ChatColor.WHITE + "Please list at least one player whose data you wish to reset.");
             return true;

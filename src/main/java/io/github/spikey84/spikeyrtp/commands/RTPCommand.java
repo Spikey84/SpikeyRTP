@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 public class RTPCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        //checks perms and runs rtp
         if(sender.hasPermission("spikeyrtp.rtp")) {
             Main.rtp((Player) sender);
         } else {

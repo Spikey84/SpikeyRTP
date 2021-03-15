@@ -23,15 +23,15 @@ public class Main extends JavaPlugin {
     public static Plugin plugin;
     public static Database db;
 
-    static int maxLoc;
+    static int maxLoc; //max distance in one direction of rtps
     static int limit; //limit of teleports
-    public static Location returnLoc;
-    public static boolean stuck;
+    public static Location returnLoc; //return location of a portal
+    public static boolean stuck; //used to check if the /stuck command is enabled
 
-    public static Map<Player,Integer> users = new HashMap<Player,Integer>();
-    public static Map<Player, Boolean> stuckStatus = new HashMap<Player, Boolean>();
-    public static Map<Player, Integer> stuckCode = new HashMap<Player, Integer>();
-    public static ArrayList<Location> portalBlocks = new ArrayList<Location>();
+    public static Map<Player,Integer> users = new HashMap<Player,Integer>();//temp storage of players and their total rtps
+    public static Map<Player, Boolean> stuckStatus = new HashMap<Player, Boolean>();//true if /stuck is in code receiving mode; false if /stuck is in code accepting mode
+    public static Map<Player, Integer> stuckCode = new HashMap<Player, Integer>();//code used to confirm /stuck
+    public static ArrayList<Location> portalBlocks = new ArrayList<Location>();//container for the blocks inside a portal
 
     static FileConfiguration config;
 
@@ -55,14 +55,18 @@ public class Main extends JavaPlugin {
 
         this.saveDefaultConfig();
         config = this.getConfig();
+        //sets values from the config
         maxLoc = config.getInt("maxDistance");
         limit = config.getInt("maxTeleports");
         stuck = config.getBoolean("stuck");
         returnLoc = new Location(Bukkit.getWorld(config.getString("world")),config.getInt("returnX"),config.getInt("returnY"),config.getInt("returnZ"));
 
+        //retrieves data from the database for all online players (in case the plugin is reset)
         for (Player player : Bukkit.getOnlinePlayers()) {
             Main.users.put(player, Main.db.getTokens(player.getName()));
         }
+
+        //gets all the blocks that make up the portal
         if(config.getBoolean("portal")) {
             portalBlocks = blocksBetweenPoints(Bukkit.getWorld(config.getString("world")), new Location(Bukkit.getWorld(config.getString("world")), config.getInt("blockOneX"), config.getInt("blockOneY"), config.getInt("blockOneZ")), new Location(Bukkit.getWorld(config.getString("world")), config.getInt("blockTwoX"), config.getInt("blockTwoY"), config.getInt("blockTwoZ")));
         }
@@ -77,12 +81,16 @@ public class Main extends JavaPlugin {
         }
     }
 
+
     public static boolean rtp(Player player) {
         int numTeleports = users.get(player);
+
+        //checks if the player is over or at their limit of teleports and that they do not have the bypass permission
         if(numTeleports >= limit && !player.hasPermission("spikeyrtp.bypasslimit")) {
             player.sendMessage(prefix + ChatColor.WHITE + "You have already used your " + limit + " allowed RTP(s).");
             return false;
         }
+
         int x;
         int z;
         Location loc = player.getLocation();
@@ -106,21 +114,24 @@ public class Main extends JavaPlugin {
             }
         }
         //teleport player
-        loc.setY(loc.getBlockY()+1);
+        loc.setY(loc.getBlockY() + 1);
         loc.setX(loc.getX() + 0.5);
         loc.setZ(loc.getZ() + 0.5);
         player.teleport(loc);
         player.sendMessage(prefix + "" + ChatColor.WHITE + "Teleported to " + ChatColor.DARK_AQUA + loc.getBlockX() + ChatColor.WHITE + ", " + ChatColor.DARK_AQUA + loc.getBlockY() + ChatColor.WHITE + ", " + ChatColor.DARK_AQUA + loc.getBlockZ() + ChatColor.WHITE + ".");
+        //adds 1 to the total teleports to a player unless they have the bypass perm
         if(!player.hasPermission("spikeyrtp.bypasslimit")) {
             users.replace(player, numTeleports+1);
         }
         return true;
     }
 
+    //generates a random number between the max distance and the negative max distance
     private static int genLoc() {
-        return (int) Math.round(((Math.random()*10000)%(maxLoc*2))-(maxLoc));
+        return (int) Math.round(((Math.random() * 10000) % (maxLoc * 2)) - (maxLoc));
     }
 
+    //returns a list of all blocks inside a box made by two locations given in a specified world
     public static ArrayList<Location> blocksBetweenPoints(World world, Location loc1, Location loc2){
         ArrayList<Location> locations = new ArrayList<Location>();
 
@@ -130,7 +141,7 @@ public class Main extends JavaPlugin {
         int highX;
         int highY;
         int highZ;
-        if(loc1.getBlockX()<loc2.getBlockX()) {
+        if(loc1.getBlockX() < loc2.getBlockX()) {
             lowX = loc1.getBlockX();
             highX = loc2.getBlockX();
         } else {
@@ -138,7 +149,7 @@ public class Main extends JavaPlugin {
             lowX = loc2.getBlockX();
         }
 
-        if(loc1.getBlockY()<loc2.getBlockY()) {
+        if(loc1.getBlockY() < loc2.getBlockY()) {
             lowY = loc1.getBlockY();
             highY = loc2.getBlockY();
         } else {
@@ -146,7 +157,7 @@ public class Main extends JavaPlugin {
             lowY = loc2.getBlockY();
         }
 
-        if(loc1.getBlockZ()<loc2.getBlockZ()) {
+        if(loc1.getBlockZ() < loc2.getBlockZ()) {
             lowZ = loc1.getBlockZ();
             highZ = loc2.getBlockZ();
         } else {
@@ -154,14 +165,13 @@ public class Main extends JavaPlugin {
             lowZ = loc2.getBlockZ();
         }
         Bukkit.getLogger().info("low:"+lowY + " high:" + highY);
-        for(int x = lowX;x<highX;x++) {
-            for(int y = lowY;y<highY;y++) {
-                for(int z = lowZ;z<highZ;z++) {
+        for(int x = lowX; x < highX; x++) {
+            for(int y = lowY; y<highY; y++) {
+                for(int z = lowZ; z<highZ; z++) {
                     locations.add(new Location(world,x,y,z));
                 }
             }
         }
         return locations;
     }
-
 }

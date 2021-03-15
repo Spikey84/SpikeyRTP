@@ -8,7 +8,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class PlayerLeave implements Listener {
     @EventHandler
     public void playerLeave(PlayerQuitEvent event) {
-        Main.db.setTokens(event.getPlayer(),Main.users.get(event.getPlayer()));
+        //exports temp data to the database
+        Main.db.setTokens(event.getPlayer(), Main.users.get(event.getPlayer()));
         Main.users.remove(event.getPlayer());
     }
 }
