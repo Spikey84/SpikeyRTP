@@ -10,6 +10,13 @@ commands:
     usage: /rtpreset
     description: Resets a player's rtp data.
     permission: spikeyrtp.reset
+  removebeams:
+    usage: /removebeams
+    description: Removes beams from end gateways within a radius of the player.
+    permission: spikeyrtp.removebeams
+  stuck:
+    usage: /stuck
+    description: Kills the user in case they are stuck
 permissions:
     spikeyrtp.bypasslimit:
       default: false

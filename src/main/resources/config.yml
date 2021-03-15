@@ -3,3 +3,29 @@ maxDistance: 1000
 
 #represents the maximum number of teleports a player may use; must be a whole number
 maxTeleports: 1
+
+#toggles the /stuck command
+stuck: true
+
+#portals are advanced and should not be used unless you know what you are doing
+portal: false
+
+#the world that the portal works in
+world: world
+
+#All portals must be at least 2 wide in each direction
+#cordnates of the first corner of the portal
+blockOneX: 0
+blockOneY: 0
+blockOneZ: 0
+
+#cordnates of the second corner of the portal
+blockTwoX: 0
+blockTwoY: 0
+blockTwoZ: 0
+
+#allows portals to teleport the player to coordinates if they are unable to rtp
+returnlocation: true
+returnX: 0
+returnY: 0
+returnZ: 0

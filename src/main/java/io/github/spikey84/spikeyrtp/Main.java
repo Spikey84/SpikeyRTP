@@ -2,30 +2,40 @@ package io.github.spikey84.spikeyrtp;
 
 import io.github.spikey84.spikeyrtp.commands.RTPCommand;
 import io.github.spikey84.spikeyrtp.commands.RTPReset;
+import io.github.spikey84.spikeyrtp.commands.RemoveGatewayBeams;
+import io.github.spikey84.spikeyrtp.commands.Stuck;
+import io.github.spikey84.spikeyrtp.events.PlayerJoin;
+import io.github.spikey84.spikeyrtp.events.PlayerLeave;
+import io.github.spikey84.spikeyrtp.events.PlayerMove;
 import io.github.spikey84.spikeyrtp.sql.Database;
 import io.github.spikey84.spikeyrtp.sql.SQLite;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main extends JavaPlugin {
-    static Plugin plugin;
+    public static Plugin plugin;
     public static Database db;
 
     static int maxLoc;
     static int limit; //limit of teleports
+    public static Location returnLoc;
+    public static boolean stuck;
+
+    public static Map<Player,Integer> users = new HashMap<Player,Integer>();
+    public static Map<Player, Boolean> stuckStatus = new HashMap<Player, Boolean>();
+    public static Map<Player, Integer> stuckCode = new HashMap<Player, Integer>();
+    public static ArrayList<Location> portalBlocks = new ArrayList<Location>();
 
     static FileConfiguration config;
-    //public static List<String> users;
-    public static String prefix = ChatColor.WHITE + "["+ ChatColor.DARK_AQUA + "SpikeyRTP" + ChatColor.WHITE + "] ";
+
+    public static String prefix = ChatColor.WHITE + "[" + ChatColor.DARK_AQUA + "SpikeyRTP" + ChatColor.WHITE + "] ";
 
     @Override
     public void onEnable() {
@@ -34,35 +44,44 @@ public class Main extends JavaPlugin {
         db = new SQLite(this);
         db.load();
 
-
-
-
         getCommand("rtp").setExecutor(new RTPCommand());
         getCommand("rtpreset").setExecutor(new RTPReset());
+        getCommand("removebeams").setExecutor(new RemoveGatewayBeams());
+        getCommand("stuck").setExecutor(new Stuck());
+
+        Bukkit.getPluginManager().registerEvents(new PlayerJoin(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerLeave(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerMove(), this);
 
         this.saveDefaultConfig();
         config = this.getConfig();
-        Bukkit.getLogger().info(config.getStringList("users")+ "");
         maxLoc = config.getInt("maxDistance");
         limit = config.getInt("maxTeleports");
+        stuck = config.getBoolean("stuck");
+        returnLoc = new Location(Bukkit.getWorld(config.getString("world")),config.getInt("returnX"),config.getInt("returnY"),config.getInt("returnZ"));
 
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Main.users.put(player, Main.db.getTokens(player.getName()));
+        }
+        if(config.getBoolean("portal")) {
+            portalBlocks = blocksBetweenPoints(Bukkit.getWorld(config.getString("world")), new Location(Bukkit.getWorld(config.getString("world")), config.getInt("blockOneX"), config.getInt("blockOneY"), config.getInt("blockOneZ")), new Location(Bukkit.getWorld(config.getString("world")), config.getInt("blockTwoX"), config.getInt("blockTwoY"), config.getInt("blockTwoZ")));
+        }
 
     }
 
     @Override
     public void onDisable() {
-        //config.set("users", users);
-        //config.set("maxdistance",maxLoc);
-        //saveConfig();
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            db.setTokens(player,Main.users.get(player.getPlayer()));
+            users.remove(player.getPlayer());
+        }
     }
 
-
-
-    public static void rtp(Player player) {
-        int numTeleports = db.getTokens(player.getName());
+    public static boolean rtp(Player player) {
+        int numTeleports = users.get(player);
         if(numTeleports >= limit && !player.hasPermission("spikeyrtp.bypasslimit")) {
             player.sendMessage(prefix + ChatColor.WHITE + "You have already used your " + limit + " allowed RTP(s).");
-            return;
+            return false;
         }
         int x;
         int z;
@@ -83,7 +102,7 @@ public class Main extends JavaPlugin {
             attempts++;
             if(attempts > 40) {
                 player.sendMessage(prefix + "" + ChatColor.WHITE + "Unable to find a suitable location. Please re-run the command or re-enter portal. Sorry.");
-                return;
+                return false;
             }
         }
         //teleport player
@@ -93,12 +112,56 @@ public class Main extends JavaPlugin {
         player.teleport(loc);
         player.sendMessage(prefix + "" + ChatColor.WHITE + "Teleported to " + ChatColor.DARK_AQUA + loc.getBlockX() + ChatColor.WHITE + ", " + ChatColor.DARK_AQUA + loc.getBlockY() + ChatColor.WHITE + ", " + ChatColor.DARK_AQUA + loc.getBlockZ() + ChatColor.WHITE + ".");
         if(!player.hasPermission("spikeyrtp.bypasslimit")) {
-            //users.add(player.getName());
-            db.setTokens(player, numTeleports+1);
+            users.replace(player, numTeleports+1);
         }
+        return true;
     }
 
     private static int genLoc() {
         return (int) Math.round(((Math.random()*10000)%(maxLoc*2))-(maxLoc));
     }
+
+    public static ArrayList<Location> blocksBetweenPoints(World world, Location loc1, Location loc2){
+        ArrayList<Location> locations = new ArrayList<Location>();
+
+        int lowX;
+        int lowY;
+        int lowZ;
+        int highX;
+        int highY;
+        int highZ;
+        if(loc1.getBlockX()<loc2.getBlockX()) {
+            lowX = loc1.getBlockX();
+            highX = loc2.getBlockX();
+        } else {
+            highX = loc1.getBlockX();
+            lowX = loc2.getBlockX();
+        }
+
+        if(loc1.getBlockY()<loc2.getBlockY()) {
+            lowY = loc1.getBlockY();
+            highY = loc2.getBlockY();
+        } else {
+            highY = loc1.getBlockY();
+            lowY = loc2.getBlockY();
+        }
+
+        if(loc1.getBlockZ()<loc2.getBlockZ()) {
+            lowZ = loc1.getBlockZ();
+            highZ = loc2.getBlockZ();
+        } else {
+            highZ = loc1.getBlockZ();
+            lowZ = loc2.getBlockZ();
+        }
+        Bukkit.getLogger().info("low:"+lowY + " high:" + highY);
+        for(int x = lowX;x<highX;x++) {
+            for(int y = lowY;y<highY;y++) {
+                for(int z = lowZ;z<highZ;z++) {
+                    locations.add(new Location(world,x,y,z));
+                }
+            }
+        }
+        return locations;
+    }
+
 }

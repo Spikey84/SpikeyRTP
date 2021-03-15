@@ -16,8 +16,8 @@ public class RTPReset implements CommandExecutor {
         }
         sender.sendMessage(Main.prefix + "" + ChatColor.WHITE + "Data reset started:");
         for(String name : args) {
-            if(Main.db.getTokens(name)>0) {
-                Main.db.setTokens((Player) sender,0);
+            if(Main.users.get((Player) sender)>0) {
+                Main.users.replace((Player) sender,0);
                 sender.sendMessage(ChatColor.GRAY + "" + name + "'s rtp data has been reset.");
             } else {
                 sender.sendMessage(ChatColor.GRAY + "" + name + " has no rtp data to delete.");

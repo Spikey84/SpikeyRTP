@@ -9,8 +9,7 @@ import java.util.logging.Level;
 
 import org.bukkit.entity.Player;
 
- // YOU MUST IMPORT THE CLASS ERROR, AND ERRORS!!!
-import io.github.spikey84.spikeyrtp.Main; // Import main class!
+import io.github.spikey84.spikeyrtp.Main;
 import io.github.spikey84.spikeyrtp.sql.Error;
 import io.github.spikey84.spikeyrtp.sql.Errors;
 
