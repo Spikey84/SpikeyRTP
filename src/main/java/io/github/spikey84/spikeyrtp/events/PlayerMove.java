@@ -18,7 +18,7 @@ public class PlayerMove implements Listener {
                 boolean tele = Main.rtp(event.getPlayer());
 
                 //if the teleport fails find the return location and moves the player there
-                if(!tele) {
+                if(!tele && Main.doReturnLoc) {
                     Location tempLoc = Main.returnLoc;
                     tempLoc.setPitch(event.getPlayer().getLocation().getPitch());
                     tempLoc.setYaw(event.getPlayer().getLocation().getYaw());

@@ -26,6 +26,7 @@ public class Main extends JavaPlugin {
     static int maxLoc; //max distance in one direction of rtps
     static int limit; //limit of teleports
     public static Location returnLoc; //return location of a portal
+    public static Boolean doReturnLoc;//use return location?
     public static boolean stuck; //used to check if the /stuck command is enabled
 
     public static Map<Player,Integer> users = new HashMap<Player,Integer>();//temp storage of players and their total rtps
@@ -59,6 +60,7 @@ public class Main extends JavaPlugin {
         maxLoc = config.getInt("maxDistance");
         limit = config.getInt("maxTeleports");
         stuck = config.getBoolean("stuck");
+        doReturnLoc = config.getBoolean("returnlocation");
         returnLoc = new Location(Bukkit.getWorld(config.getString("world")),config.getInt("returnX"),config.getInt("returnY"),config.getInt("returnZ"));
 
         //retrieves data from the database for all online players (in case the plugin is reset)
