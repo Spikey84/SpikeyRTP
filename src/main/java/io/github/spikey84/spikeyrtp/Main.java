@@ -35,7 +35,6 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        config.options().copyDefaults(true);
         config.set("users", users);
         config.set("maxdistance",maxLoc);
         saveConfig();
